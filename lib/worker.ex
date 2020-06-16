@@ -1,25 +1,26 @@
 defmodule MetexOtp.Worker do
   use GenServer
+  @name MW
 
   # Client callbacks
   def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, :ok, opts)
+    GenServer.start_link(__MODULE__, :ok, opts ++ [name: MW])
   end
   # Client API
-  def get_temperature(pid, location) do
-    GenServer.call(pid, {:location, location})
+  def get_temperature(location) do
+    GenServer.call(@name, {:location, location})
   end
 
-  def get_status(pid) do
-    GenServer.call(pid, :get_status)
+  def get_status do
+    GenServer.call(@name, :get_status)
   end
 
-  def reset_status(pid) do
-    GenServer.cast(pid, :reset_status)
+  def reset_status do
+    GenServer.cast(@name, :reset_status)
   end
   
-  def kill(pid) do
-    GenServer.cast(pid, :kill)
+  def kill do
+    GenServer.cast(@name, :kill)
   end
   # Server callbacks
   def init(:ok) do
@@ -46,6 +47,11 @@ defmodule MetexOtp.Worker do
 
   def handle_cast(:kill, status) do
     {:stop, :normal, status}
+  end
+
+  def handle_info(msg, status) do
+    IO.puts "received #{inspect msg}"
+    {:noreply, status}
   end
 
   def terminate(reason, status) do
